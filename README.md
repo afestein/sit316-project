@@ -11,7 +11,7 @@ in some cities such that:
 - the total amount of driving times required is minimised
 
 The driving times between cities is given (in minutes) in the included file
-`Data_cities.csv`. Formulate this as an optimisation problem, solve it by
+`data.csv`. Formulate this as an optimisation problem, solve it by
 applying different methods and analyse solutions obtained. Discuss and compare
 the performance of the methods applied.
 
