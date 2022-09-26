@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 pulp = "*"
+numpy = "*"
 
 [dev-packages]
 
