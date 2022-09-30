@@ -9,12 +9,9 @@ def load_csv():
         data = np.loadtxt(file, delimiter=",", usecols=range(1, ncols))
     return data
 
-
 cities = load_csv()
-print(cities)
 
-
-def getCost(bitstring):
+def get_cost(bitstring):
     cost = 0
     for c in cities:
         stationed_city_distances = []
@@ -28,17 +25,17 @@ def getCost(bitstring):
 
 # tournament selection
 def selection(pop, scores, k=3):
-	selection_ix = randint(len(pop))
-	for ix in randint(0, len(pop), k-1):
-		if scores[ix] < scores[selection_ix]:
-			selection_ix = ix
-	return pop[selection_ix]
+	select_idx = randint(len(pop))
+	for idx in randint(0, len(pop), k-1):
+		if scores[idx] < scores[select_idx]:
+			select_idx = idx
+	return pop[select_idx]
     
 
 def crossover(p1, p2, crossover_rate):
 	c1, c2 = p1.copy(), p2.copy()
 	if rand() < crossover_rate:
-		# select crossover point that is not on the end of the string
+        # chosen crossover point cant be on the end of the string
 		c_point = randint(1, len(p1)-2)
 		c1 = p1[:c_point] + p2[c_point:]
 		c2 = p2[:c_point] + p1[c_point:]
@@ -53,22 +50,22 @@ def mutation(bitstring, mutation_rate):
 
     return bitstring
 
-def getRandomBitString(num_bits=15, num_true=6):
-    true_indices = np.random.choice(range(num_bits), size=num_true, replace=False)
-    return [1 if i in true_indices else 0 for i in range(num_bits)]
+def get_random_bitstring(n_bits, n_true):
+    true_indices = np.random.choice(range(n_bits), size=n_true, replace=False)
+    return [1 if i in true_indices else 0 for i in range(n_bits)]
 
 
-def isLegal(bitstring):
-    return np.sum(bitstring) == 6
+def is_legal_bitstring(bitstring, n_true):
+    return np.sum(bitstring) == n_true
 
-def runGeneticAlgorithm(num_generations, population_size, crossover_rate, mutation_rate, n_bits = 15):
-    population = [getRandomBitString() for _ in range(population_size)]
+def run_genetic_algorithm(num_generations, population_size, crossover_rate, mutation_rate, n_bits, n_true):
+    population = [get_random_bitstring(n_bits, n_true) for _ in range(population_size)]
     best_solution = population[0]
     for generation in range(num_generations):
-        scores = [getCost(c) for c in population]
+        scores = [get_cost(c) for c in population]
 
         for solution in population:
-            if getCost(solution) < getCost(best_solution):
+            if get_cost(solution) < get_cost(best_solution):
                 best_solution = solution
 
         selected_parents = [selection(population, scores) for _ in range(population_size)]
@@ -78,21 +75,30 @@ def runGeneticAlgorithm(num_generations, population_size, crossover_rate, mutati
             parent_1, parent_2 = selected_parents[i], selected_parents[i+1]
             for child in crossover(parent_1, parent_2, crossover_rate):
                 child = mutation(child, mutation_rate)
-                # this method produces many illegal results (more/less stations than required)
-                # so add a check here to ensure the new population of children only include valid solutions
-                if isLegal(child):
+                # crossover and mutation produces many illegal results (more/less stations than required)
+                # so a check is added here to ensure the new population of children only include valid solutions
+                # this has the side effect of reducing the population size
+                # a suitable starting population size must be chosen to obtain an optimal result (100 seems to be plenty)
+                if is_legal_bitstring(child, n_true):
                     children.append(child)
 
         population = children
 
-    print(f"\nBest result found from genetic algorithm: {best_solution}\ndistance: - {getCost(best_solution)}")
+    print(f"\nBest result found from genetic algorithm: {best_solution}\ndistance: - {get_cost(best_solution)}")
 
 
 if __name__ == "__main__":
+    num_cities = len(cities[0])
+    num_stations = 6
     start = time.time()
-    runGeneticAlgorithm(num_generations=100, population_size=100, crossover_rate=0.7, mutation_rate=0.05)
+    run_genetic_algorithm(
+        num_generations=100, 
+        population_size=100, 
+        crossover_rate=0.7, 
+        mutation_rate=0.05, 
+        n_bits=num_cities, 
+        n_true=num_stations
+    )
     runtime = time.time() - start
     print(f"Took {runtime:0.3f} seconds to run genetic algorithm")
-
-
-    
+ 
