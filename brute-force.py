@@ -1,10 +1,12 @@
 import more_itertools
 import numpy as np
+import time
+from utils import plot_solution
 
 ### Load city distance data ###
 # Read CSV file
 def load_csv():
-    with open("data.csv") as file:
+    with open("./data/data.csv") as file:
         ncols = len(file.readline().split(","))
         data = np.loadtxt(file, delimiter=",", usecols=range(1, ncols))
     return data
@@ -18,7 +20,7 @@ for city in cities:
     print(city)
 
 ### Find all possible distinct permutations of 6 fire stations in 15 cities ###
-
+start = time.time()
 # Build a binary starting array for station distribution
 station_count = 6
 starting_array = ([True] * station_count) + ([False] * (city_count - station_count))
@@ -63,3 +65,7 @@ for permutation in permutations:
 print("============")
 print("Optimal total distance: ", optimal_distance)
 print("Optimal station locations: ", optimal_permutation)
+runtime = time.time() - start
+print(f"\nTook {runtime:0.3f} seconds to run brute force")
+
+plot_solution(optimal_permutation, cities)
