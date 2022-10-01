@@ -52,7 +52,7 @@ def plot_solution(best_solution, cities):
 			s_x, s_y = zip(cities2d[station_idx])
 			plt.plot([s_x, c_x],[s_y, c_y], color="gray", linewidth=0.5)
 
-	print(f"Plot distance error: {100*(error/total_distance):0.2f}%")
+	# print(f"Plot distance error: {100*(error/total_distance):0.2f}%")
 	plt.show()
 
 
@@ -64,8 +64,14 @@ def get_random_bitstring(n_bits, n_true):
 def is_legal_bitstring(bitstring, n_true):
 	return np.sum(bitstring) == n_true
 
+costs = {}
+def get_cost(bitstring, cities, n_true):
+	if not is_legal_bitstring(bitstring, n_true):
+		return 10000
 
-def get_cost(bitstring, cities):
+	_b_string = ''.join(str(x) for x in bitstring)
+	if _b_string in costs:
+		return costs[_b_string]
 	cost = 0
 	for c in cities:
 		stationed_city_distances = []
@@ -74,4 +80,5 @@ def get_cost(bitstring, cities):
 				stationed_city_distances.append(c[i])
 			
 		cost += np.min(stationed_city_distances)
+	costs[_b_string] = cost
 	return cost

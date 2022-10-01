@@ -41,7 +41,7 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 	best_score = 1000
 	best_gen = 0
 	for generation in range(num_generations):
-		scores = [get_cost(c, cities) for c in population]
+		scores = [get_cost(c, cities, n_true) for c in population]
 
 		for i, solution in enumerate(population):
 			if scores[i] < best_score:
@@ -55,7 +55,7 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 		for i in range(0, population_size, 2):
 			parent_1, parent_2 = selected_parents[i], selected_parents[i+1]
 			for child in crossover(parent_1, parent_2, crossover_rate):
-				child = child if is_legal_bitstring(child, n_true) else parent_1 if rand() > 0.5 else parent_2
+				# child = child if is_legal_bitstring(child, n_true) else parent_1 if rand() > 0.5 else parent_2
 				child = mutation(child, mutation_rate)
 				children.append(child)
 
@@ -63,23 +63,23 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 
 	if len(best_solution) < 10:
 		print(f"\nBest result found from genetic algorithm: {best_solution}")
-	print(f"Distance: {get_cost(best_solution, cities)}")
+	print(f"Distance: {get_cost(best_solution, cities, n_true)}")
 	print(f"Found in gen {best_gen}")
 	return best_solution
 
 
 if __name__ == "__main__":
-	cities = load_csv("./data/5_cities.csv")
+	cities = load_csv("./data/20_cities.csv")
 	num_cities = len(cities[0])
-	num_stations = 1
+	num_stations = 6
 
 	start = time.time()
 	best_solution = run_genetic_algorithm(
 		cities=cities,
-		num_generations=25, 
+		num_generations=50, 
 		population_size=50, 
-		crossover_rate=0.7, 
-		mutation_rate=0.05, 
+		crossover_rate=0.76, 
+		mutation_rate=0.1, 
 		n_bits=num_cities, 
 		n_true=num_stations
 	)

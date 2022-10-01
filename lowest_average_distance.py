@@ -18,7 +18,7 @@ if __name__ == "__main__":
     sol = [1 if x in best else 0 for x in averages.keys()]
 
     print("Naive result by placing stations in cities with lowest average distance to all others")
-    print(f"Best distance: {get_cost(sol, cities)}")
+    print(f"Best distance: {get_cost(sol, cities, num_stations)}")
 
     plot_solution(sol, cities)
 
