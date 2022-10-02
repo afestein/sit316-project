@@ -2,26 +2,7 @@ import time
 import numpy as np
 from numpy.random import randint
 from numpy.random import rand
-
-def load_csv():
-    with open("data.csv") as file:
-        ncols = len(file.readline().split(","))
-        data = np.loadtxt(file, delimiter=",", usecols=range(1, ncols))
-    return data
-
-cities = load_csv()
-
-def get_cost(bitstring):
-    cost = 0
-    for c in cities:
-        stationed_city_distances = []
-        for i, b in enumerate(bitstring):
-            if b:
-                stationed_city_distances.append(c[i])
-            
-        cost += np.min(stationed_city_distances)
-    return cost
-
+from utils import load_csv, plot_solution, get_cost, is_legal_bitstring, get_random_bitstring
 
 # tournament selection
 def selection(pop, scores, k=3):
@@ -30,12 +11,12 @@ def selection(pop, scores, k=3):
 		if scores[idx] < scores[select_idx]:
 			select_idx = idx
 	return pop[select_idx]
-    
+	
 
 def crossover(p1, p2, crossover_rate):
 	c1, c2 = p1.copy(), p2.copy()
 	if rand() < crossover_rate:
-        # chosen crossover point cant be on the end of the string
+		# chosen crossover point cant be on the end of the string
 		c_point = randint(1, len(p1)-2)
 		c1 = p1[:c_point] + p2[c_point:]
 		c2 = p2[:c_point] + p1[c_point:]
@@ -44,61 +25,66 @@ def crossover(p1, p2, crossover_rate):
 
 
 def mutation(bitstring, mutation_rate):
-    for i in range(len(bitstring)):
-        if rand() < mutation_rate:
-            bitstring[i] = 1-bitstring[i]
+	for i in range(len(bitstring)):
+		if rand() < mutation_rate:
+			# bitshift the string rather than flipping a bit
+			# this ensures mutation will not create illegal results if given a legal bitstring
+			rand_idx = randint(len(bitstring))
+			bitstring = bitstring[rand_idx:] + bitstring[:rand_idx]
 
-    return bitstring
-
-def get_random_bitstring(n_bits, n_true):
-    true_indices = np.random.choice(range(n_bits), size=n_true, replace=False)
-    return [1 if i in true_indices else 0 for i in range(n_bits)]
+	return bitstring
 
 
-def is_legal_bitstring(bitstring, n_true):
-    return np.sum(bitstring) == n_true
+def run_genetic_algorithm(cities,num_generations, population_size, crossover_rate, mutation_rate, n_bits, n_true):
+	population = [get_random_bitstring(n_bits, n_true) for _ in range(population_size)]
+	best_solution = population[0]
+	best_score = 1000
+	best_gen = 0
+	for generation in range(num_generations):
+		scores = [get_cost(c, cities, n_true) for c in population]
 
-def run_genetic_algorithm(num_generations, population_size, crossover_rate, mutation_rate, n_bits, n_true):
-    population = [get_random_bitstring(n_bits, n_true) for _ in range(population_size)]
-    best_solution = population[0]
-    for generation in range(num_generations):
-        scores = [get_cost(c) for c in population]
+		for i, solution in enumerate(population):
+			if scores[i] < best_score:
+				best_gen = generation
+				best_score = scores[i]
+				best_solution = solution
 
-        for solution in population:
-            if get_cost(solution) < get_cost(best_solution):
-                best_solution = solution
+		selected_parents = [selection(population, scores) for _ in range(population_size)]
 
-        selected_parents = [selection(population, scores) for _ in range(population_size)]
+		children = []
+		for i in range(0, population_size, 2):
+			parent_1, parent_2 = selected_parents[i], selected_parents[i+1]
+			for child in crossover(parent_1, parent_2, crossover_rate):
+				# child = child if is_legal_bitstring(child, n_true) else parent_1 if rand() > 0.5 else parent_2
+				child = mutation(child, mutation_rate)
+				children.append(child)
 
-        children = []
-        for i in range(0, population_size, 2):
-            parent_1, parent_2 = selected_parents[i], selected_parents[i+1]
-            for child in crossover(parent_1, parent_2, crossover_rate):
-                child = mutation(child, mutation_rate)
-                # crossover and mutation produces many illegal results (more/less stations than required)
-                # so a check is added here to ensure the new population of children only include valid solutions
-                # this has the side effect of reducing the population size
-                # a suitable starting population size must be chosen to obtain an optimal result (100 seems to be plenty)
-                if is_legal_bitstring(child, n_true):
-                    children.append(child)
+		population = children
 
-        population = children
-
-    print(f"\nBest result found from genetic algorithm: {best_solution}\ndistance: - {get_cost(best_solution)}")
+	if len(best_solution) < 10:
+		print(f"\nBest result found from genetic algorithm: {best_solution}")
+	print(f"Distance: {get_cost(best_solution, cities, n_true)}")
+	print(f"Found in gen {best_gen}")
+	return best_solution
 
 
 if __name__ == "__main__":
-    num_cities = len(cities[0])
-    num_stations = 6
-    start = time.time()
-    run_genetic_algorithm(
-        num_generations=100, 
-        population_size=100, 
-        crossover_rate=0.7, 
-        mutation_rate=0.05, 
-        n_bits=num_cities, 
-        n_true=num_stations
-    )
-    runtime = time.time() - start
-    print(f"Took {runtime:0.3f} seconds to run genetic algorithm")
- 
+	cities = load_csv("./data/20_cities.csv")
+	num_cities = len(cities[0])
+	num_stations = 6
+
+	start = time.time()
+	best_solution = run_genetic_algorithm(
+		cities=cities,
+		num_generations=50, 
+		population_size=50, 
+		crossover_rate=0.76, 
+		mutation_rate=0.1, 
+		n_bits=num_cities, 
+		n_true=num_stations
+	)
+	runtime = time.time() - start
+	print(f"Took {runtime:0.3f} seconds to run genetic algorithm")
+
+	plot_solution(best_solution, cities)
+
