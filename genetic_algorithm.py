@@ -2,7 +2,7 @@ import time
 import numpy as np
 from numpy.random import randint
 from numpy.random import rand
-from utils import load_csv, plot_solution, get_cost, is_legal_bitstring, get_random_bitstring
+from utils import print_output, load_csv, plot_solution, get_cost, is_legal_bitstring, get_random_bitstring, animate_solutions,plot_progress
 
 # tournament selection
 def selection(pop, scores, k=3):
@@ -18,36 +18,54 @@ def crossover(p1, p2, crossover_rate):
 	if rand() < crossover_rate:
 		# chosen crossover point cant be on the end of the string
 		c_point = randint(1, len(p1)-2)
+	#	if np.sum(p1[:c_point]+p2[c_point:]) == 10:
 		c1 = p1[:c_point] + p2[c_point:]
+	#	if np.sum(p2[:c_point]+p1[c_point:]) == 10:
 		c2 = p2[:c_point] + p1[c_point:]
+		#c1 =p1[::-1]
+	#	c2 =p2[::-1]
 
 	return [c1, c2]
 
 
 def mutation(bitstring, mutation_rate):
-	for i in range(len(bitstring)):
-		if rand() < mutation_rate:
-			# bitshift the string rather than flipping a bit
-			# this ensures mutation will not create illegal results if given a legal bitstring
-			rand_idx = randint(len(bitstring))
-			bitstring = bitstring[rand_idx:] + bitstring[:rand_idx]
+	if rand() < mutation_rate:
+		# bitshift the string rather than flipping a bit
+		# this ensures mutation will not create illegal results if given a legal bitstring
+		rand_idx = randint(len(bitstring)-2)
+		bitstring = bitstring[rand_idx:] + bitstring[:rand_idx]
 
 	return bitstring
 
 
-def run_genetic_algorithm(cities,num_generations, population_size, crossover_rate, mutation_rate, n_bits, n_true):
+def run_genetic_algorithm(cities,num_generations, population_size, crossover_rate, mutation_rate, n_bits, n_true, stuck_max=50):
 	population = [get_random_bitstring(n_bits, n_true) for _ in range(population_size)]
 	best_solution = population[0]
 	best_score = 1000
 	best_gen = 0
+	best_solutions = []
+	gen_solutions = []
+	stuck_ctr = 0
 	for generation in range(num_generations):
+		if stuck_ctr == stuck_max:
+			break
+		stuck_ctr+=1
 		scores = [get_cost(c, cities, n_true) for c in population]
-
+		best_in_gen = 1000000
+		best_gen_solution = population[0]
 		for i, solution in enumerate(population):
 			if scores[i] < best_score:
 				best_gen = generation
 				best_score = scores[i]
 				best_solution = solution
+				best_solutions.append(solution)
+				stuck_ctr = 0
+
+			if scores[i] < best_in_gen:
+				best_in_gen = scores[i]
+				best_gen_solution = solution
+
+		gen_solutions.append(best_gen_solution)
 
 		selected_parents = [selection(population, scores) for _ in range(population_size)]
 
@@ -62,29 +80,32 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 		population = children
 
 	if len(best_solution) < 10:
-		print(f"\nBest result found from genetic algorithm: {best_solution}")
-	print(f"Distance: {get_cost(best_solution, cities, n_true)}")
-	print(f"Found in gen {best_gen}")
-	return best_solution
+		print(f"Best result found from genetic algorithm: \n{best_solution}")
+	print(f"Found in generation {best_gen}")
+	return best_solution, best_solutions, gen_solutions
 
 
 if __name__ == "__main__":
-	cities = load_csv("./data/20_cities.csv")
+	cities = load_csv("./data/50_cities.csv")
 	num_cities = len(cities[0])
-	num_stations = 6
+	num_stations = 10
 
 	start = time.time()
-	best_solution = run_genetic_algorithm(
+	best_solution, best_solutions, gen_solutions = run_genetic_algorithm(
 		cities=cities,
-		num_generations=50, 
-		population_size=50, 
-		crossover_rate=0.76, 
-		mutation_rate=0.1, 
+		num_generations=100, 
+		population_size=200, 
+		crossover_rate=0.8, 
+		mutation_rate=0.11, 
 		n_bits=num_cities, 
 		n_true=num_stations
 	)
 	runtime = time.time() - start
-	print(f"Took {runtime:0.3f} seconds to run genetic algorithm")
-
+	best_dist = get_cost(best_solution, cities, num_stations)
+	print_output("Genetic Algorithm", runtime, best_dist, num_cities, num_stations)
 	plot_solution(best_solution, cities)
+	solutions = [get_cost(s, cities, num_stations) for s in gen_solutions]
+	plot_progress(solutions)
+	animate_solutions(gen_solutions, cities, num_stations)
+
 
