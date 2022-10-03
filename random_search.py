@@ -4,7 +4,7 @@ import time
 
 cities = load_csv("data/100_cities.csv")
 num_cities = len(cities[0])
-num_stations = 10
+num_stations = 15
 num_iterations = 200
 
 start = time.time()

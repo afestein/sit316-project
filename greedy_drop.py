@@ -2,8 +2,8 @@ from utils import load_csv, get_cost, plot_solution, plot_progress, print_output
 import time
 
 if __name__ == "__main__":
-    cities = load_csv("./data/50_cities.csv")
-    num_stations = 10
+    cities = load_csv("./data/100_cities.csv")
+    num_stations = 15
     averages = {}
     start = time.time()
     cost_history = []
