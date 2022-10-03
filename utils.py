@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.manifold import MDS
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.animation import FuncAnimation
 
 def load_csv(filename):
 	with open(filename) as file:
@@ -20,6 +21,82 @@ def get2d(distance_matrix):
 
 def get_distance(xy1, xy2):
 	return np.sqrt(((xy1[0]-xy2[0])**2) + ((xy1[1]-xy2[1])**2))
+
+def animate_solutions(best_solutions, cities, num_stations):
+	cities2d = get2d(cities)
+
+	# initializing a figure in 
+	# which the graph will be plotted
+	fig = plt.figure() 
+	
+	# marking the x-axis and y-axis
+	axis = plt.axes() 
+	
+	station_scat = ''
+	city_scat = ''
+	lines = []
+	for i in range(len(cities2d)):
+		c_x, c_y = zip(cities2d[i])
+		if best_solutions[0][i]:
+			station_scat = axis.scatter(c_x, c_y, c="red")
+		else:
+			city_scat = axis.scatter(c_x, c_y, c="blue")
+				
+		closest = 10000
+		station_idx = -1
+
+		for j, b in enumerate(best_solutions[0]):
+			distance = get_distance(cities2d[i], cities2d[j])
+
+			if b:
+				if distance < closest:
+					closest = distance
+					station_idx = j	
+
+		s_x, s_y = zip(cities2d[station_idx])
+		lines.append(axis.plot([s_x, c_x],[s_y, c_y], color="gray", linewidth=0.5))
+	
+	text = axis.text(0, 0, get_cost(best_solutions[0], cities, num_stations))
+
+	def animate(frame):
+		axis.clear()
+		lines = []
+		for i in range(len(cities2d)):
+			c_x, c_y = zip(cities2d[i])
+
+			city_scat = axis.scatter(c_x, c_y, c="blue")
+
+			if best_solutions[frame][i]:
+				station_scat = axis.scatter(c_x, c_y, c="red")
+					
+			closest = 10000000
+			station_idx = -1
+
+			for j, b in enumerate(best_solutions[frame]):
+				distance = get_distance(cities2d[i], cities2d[j])
+		
+				if b:
+					if distance < closest:
+						closest = distance
+						station_idx = j
+
+
+			s_x, s_y = zip(cities2d[station_idx])
+			lines.append(axis.plot([s_x, c_x],[s_y, c_y], color="gray", linewidth=0.5))
+
+		text = axis.text(0, 0, f"{frame}: {get_cost(best_solutions[frame], cities, num_stations)}")
+		output = [station_scat, city_scat, text] + lines
+
+		return output
+	
+	anim = FuncAnimation(fig, animate, frames = len(best_solutions), interval=200)
+	plt.show()
+	# anim.save('genetic_algorithm.gif', writer = 'PillowWriter', fps = len(best_solutions)//2)
+
+
+def plot_progress(solutions):
+	plt.plot(range(len(solutions)), solutions)
+	plt.show()
 
 def plot_solution(best_solution, cities):
 	cities2d = get2d(cities)
@@ -65,9 +142,9 @@ def is_legal_bitstring(bitstring, n_true):
 	return np.sum(bitstring) == n_true
 
 costs = {}
-def get_cost(bitstring, cities, n_true):
-	if not is_legal_bitstring(bitstring, n_true):
-		return 10000
+def get_cost(bitstring, cities, n_true=0):
+	if n_true and not is_legal_bitstring(bitstring, n_true):
+		return 1000000000
 
 	_b_string = ''.join(str(x) for x in bitstring)
 	if _b_string in costs:
@@ -82,3 +159,10 @@ def get_cost(bitstring, cities, n_true):
 		cost += np.min(stationed_city_distances)
 	costs[_b_string] = cost
 	return cost
+
+def print_output(algo_name, time, best_dist, num_cities, num_stations):
+    print(f"{algo_name} results")
+    print(f"Time: {time:0.2f}s")
+    print(f"Best distance: {best_dist}")
+    print(f"Cities: {num_cities}")
+    print(f"Stations: {num_stations}")
