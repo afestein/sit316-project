@@ -1,7 +1,7 @@
 from pulp import *
 from utils import load_csv
 
-# https://www.researchgate.net/publication/2377020_A_Genetic_Algorithm_for_the_P-Median_Problem
+# https://www.researchgate.net/publication/313795371_Optimization_of_P_Median_Problem_in_Python_Using_PuLP_Package
 
 data = load_csv('./data/data.csv')
 location = [f"city{i}" for i in range(len(data))]
