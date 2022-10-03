@@ -3,14 +3,14 @@ from utils import load_csv
 
 # https://www.researchgate.net/publication/313795371_Optimization_of_P_Median_Problem_in_Python_Using_PuLP_Package
 
-data = load_csv('./data/data.csv')
+data = load_csv('./data/50_cities.csv')
 location = [f"city{i}" for i in range(len(data))]
 
 D = dict(zip(location, [
 	dict(zip(location, data[i])) for i in range(len(data))
 ]))
 
-p = 6
+p = 10
 
 X = LpVariable.dicts(
 	f'X_{location}_{location}', 

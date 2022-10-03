@@ -4,12 +4,27 @@ from numpy.random import randint
 from numpy.random import rand
 from utils import print_output, load_csv, plot_solution, get_cost, is_legal_bitstring, get_random_bitstring, animate_solutions,plot_progress
 
+
+def get_elites(population, scores, num_elites):
+	sorted_scores = [index for index, num in sorted(enumerate(scores), key=lambda x: x[-1])]
+	elites = []
+	for idx in sorted_scores:
+		if len(elites) == num_elites:
+			break
+		
+		elites.append(population[idx])
+	return elites
+
 # tournament selection
-def selection(pop, scores, k=3):
+def selection(pop, scores, generation, select_worse_rate, k=10):
 	select_idx = randint(len(pop))
+	total_score_difference = 0
 	for idx in randint(0, len(pop), k-1):
 		if scores[idx] < scores[select_idx]:
 			select_idx = idx
+
+		total_score_difference = abs(scores[idx] - scores[idx-1])
+
 	return pop[select_idx]
 	
 
@@ -44,26 +59,19 @@ def crossover(p1, p2, crossover_rate, n_true):
 
 def mutation(bitstring, mutation_rate):
 	if rand() < mutation_rate:
-		# bitshift the string rather than flipping a bit
-		# this ensures mutation will not create illegal results if given a legal bitstring
-		# rand_idx = randint(len(bitstring)-2)
-		# bitstring = bitstring[rand_idx:] + bitstring[:rand_idx]
-
 		idx_1 = randint(len(bitstring))
 		idx_2 = randint(len(bitstring))
-		while idx_1 == idx_2:
-			idx_2 = randint(len(bitstring))
-		
+
+		# only swap the bits if it doesn't affect the total sum of the bitstring
 		if (bitstring[idx_1] and not bitstring[idx_2]) or (not bitstring[idx_1] and bitstring[idx_2]):
 			tmp = bitstring[idx_1]
 			bitstring[idx_1] = bitstring[idx_2]
 			bitstring[idx_2] = tmp
 
-
 	return bitstring
 
 
-def run_genetic_algorithm(cities,num_generations, population_size, crossover_rate, mutation_rate, n_bits, n_true, stuck_max=50):
+def run_genetic_algorithm(cities,num_generations, population_size, crossover_rate, mutation_rate, select_worse_rate, n_bits, n_true, num_elites=10, stuck_max=50):
 	population = [get_random_bitstring(n_bits, n_true) for _ in range(population_size)]
 	best_solution = population[0]
 	best_score = 10000000
@@ -91,8 +99,8 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 				best_gen_solution = solution
 
 		gen_solutions.append(best_gen_solution)
-
-		selected_parents = [selection(population, scores) for _ in range(population_size)]
+		selected_parents = get_elites(population, scores, num_elites)
+		selected_parents += [selection(population, scores, generation, select_worse_rate) for _ in range(population_size-num_elites)]
 
 		children = []
 		for i in range(0, population_size, 2):
@@ -111,17 +119,18 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 
 
 if __name__ == "__main__":
-	cities = load_csv("./data/100_cities.csv")
+	cities = load_csv("./data/50_cities.csv")
 	num_cities = len(cities[0])
-	num_stations = 15
+	num_stations = 10
 
 	start = time.time()
 	best_solution, best_solutions, gen_solutions = run_genetic_algorithm(
 		cities=cities,
 		num_generations=150, 
-		population_size=150, 
+		population_size=300, 
 		crossover_rate=0.76, 
 		mutation_rate=0.5, 
+		select_worse_rate=0.05,
 		n_bits=num_cities, 
 		n_true=num_stations
 	)
