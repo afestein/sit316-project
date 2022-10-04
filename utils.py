@@ -1,8 +1,9 @@
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import csv
 import numpy as np
 from sklearn.manifold import MDS
-import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.animation import FuncAnimation
 
 def load_csv(filename):
 	with open(filename) as file:
@@ -89,27 +90,35 @@ def animate_solutions(best_solutions, cities, num_stations):
 
 		return output
 	
-	anim = FuncAnimation(fig, animate, frames = len(best_solutions), interval=200)
+	anim = FuncAnimation(fig, animate, frames = 200*(len(best_solutions)//100), interval=250)
 	plt.show()
 	# anim.save('genetic_algorithm.gif', writer = 'PillowWriter', fps = len(best_solutions)//2)
 
 
-def plot_progress(solutions):
-	plt.plot(range(len(solutions)), solutions)
-	plt.show()
+def plot_progress(solutions, filename=None):
+	fig, ax = plt.subplots() 
+	ax.plot(range(len(solutions)), solutions)
+	if filename:
+		plt.savefig(f"./images/progress_{filename}")
+	else:
+		plt.show()
 
-def plot_solution(best_solution, cities):
+	fig.clear()
+
+def plot_solution(best_solution, cities, filename=None):
 	cities2d = get2d(cities)
 
 	x, y = zip(*cities2d)
 	total_distance = 0
 	error = 0
+
+	fig, ax = plt.subplots() 
 	for i in range(len(cities2d)):
 		c_x, c_y = zip(cities2d[i])
 		if best_solution[i]:
-			plt.scatter(c_x, c_y, c="red")
+			ax.scatter(c_x, c_y, c="red")
 		else:
-			plt.scatter(c_x, c_y, c="blue")
+			ax.scatter(c_x, c_y, c="blue")
 				
 		closest = 10000
 		station_idx = -1
@@ -127,10 +136,16 @@ def plot_solution(best_solution, cities):
 
 		if station_idx != i:
 			s_x, s_y = zip(cities2d[station_idx])
-			plt.plot([s_x, c_x],[s_y, c_y], color="gray", linewidth=0.5)
+			ax.plot([s_x, c_x],[s_y, c_y], color="gray", linewidth=0.5)
 
 	# print(f"Plot distance error: {100*(error/total_distance):0.2f}%")
-	plt.show()
+	if filename:
+		plt.savefig(f"./images/solution_{filename}")
+	else:
+		plt.show()
+
+	fig.clear()
+	
 
 
 def get_random_bitstring(n_bits, n_true):
@@ -149,20 +164,44 @@ def get_cost(bitstring, cities, n_true=0):
 	_b_string = ''.join(str(x) for x in bitstring)
 	if _b_string in costs:
 		return costs[_b_string]
+	
 	cost = 0
+	# number of cities * number of cities
 	for c in cities:
-		stationed_city_distances = []
+		min_dist = 100000000000
 		for i, b in enumerate(bitstring):
-			if b:
-				stationed_city_distances.append(c[i])
-			
-		cost += np.min(stationed_city_distances)
+			if b and c[i] < min_dist:
+				min_dist = c[i]
+
+		cost += min_dist
 	costs[_b_string] = cost
 	return cost
 
 def print_output(algo_name, time, best_dist, num_cities, num_stations):
     print(f"{algo_name} results")
-    print(f"Time: {time:0.2f}s")
+    print(f"Time: {time:0.3f}s")
     print(f"Best distance: {best_dist}")
     print(f"Cities: {num_cities}")
-    print(f"Stations: {num_stations}")
+    print(f"Stations: {num_stations}\n")
+
+
+def output_to_csv(algo_name, data):
+	HEADERS = ['cities/stations','runtime','solution']
+	filename = f"./tests/test-{algo_name}.csv"
+	with open(filename, 'w', newline="") as fn:
+		csvwriter = csv.writer(fn) 
+		csvwriter.writerow(HEADERS) 
+		csvwriter.writerows(data)
+
+	print(f'created {filename}')
+
+
+# https://stackoverflow.com/questions/49494078/find-the-median-from-afind_weighted_median-dictionary-of-values-and-number-of-their-occurences
+def get_median(item_dict : dict[int, int]) -> int:
+    df = pd.DataFrame.from_dict(item_dict, orient='index').reset_index()
+    df.columns = ['idx', 'distance']
+    df['cum_sum'] = df['distance'].cumsum()
+    total_count = df.iloc[-1, -1]
+    for id, row in df.iterrows():
+        if row['cum_sum'] >= int(total_count*0.5):
+            return row['idx']

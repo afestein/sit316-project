@@ -1,11 +1,7 @@
 from utils import load_csv, get_cost, plot_solution, plot_progress, print_output
 import time
 
-if __name__ == "__main__":
-    cities = load_csv("./data/100_cities.csv")
-    num_stations = 15
-    averages = {}
-    start = time.time()
+def greedy_drop(cities, num_stations):
     cost_history = []
     bit_string = [1]*len(cities)
     for i in range(len(cities)-num_stations):
@@ -26,9 +22,17 @@ if __name__ == "__main__":
         bit_string[best_idx] = 0
         cost_history.append(best_cost)
 
+    return bit_string, best_cost
+
+if __name__ == "__main__":
+    cities = load_csv("./data/100_cities.csv")
+    num_stations = 40
+
+    start = time.time()
+    solution, best_cost = greedy_drop(cities, num_stations)
     end = time.time() - start
     print_output("Greedy Drop", end, best_cost, len(cities), num_stations)
-    plot_solution(bit_string, cities)
-    plot_progress(cost_history)
+    # plot_solution(bit_string, cities)
+    # plot_progress(cost_history)
 
 

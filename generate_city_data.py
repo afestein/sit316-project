@@ -12,6 +12,7 @@ def generate_city_data(num_cities, filename, max_distance):
         fields.append(city_name)
         for j in range(num_cities):
             symm_distances[i][j] = int(symm_distances[i][j])
+           
             if(i == j):
                 symm_distances[i][j] = 0
 
@@ -27,7 +28,7 @@ def generate_city_data(num_cities, filename, max_distance):
 if __name__ == "__main__":
     num_cities = 1000
     filename = f"./data/{num_cities}_cities.csv"
-    max_distance = 50
+    max_distance = num_cities * 2.6 # same ratio as the provided data
     generate_city_data(num_cities, filename, max_distance)
 
     print(f"created {filename}")

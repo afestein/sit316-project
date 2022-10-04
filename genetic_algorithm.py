@@ -16,7 +16,7 @@ def get_elites(population, scores, num_elites):
 	return elites
 
 # tournament selection
-def selection(pop, scores, generation, select_worse_rate, k=10):
+def selection(pop, scores, generation, k=10):
 	select_idx = randint(len(pop))
 	total_score_difference = 0
 	for idx in randint(0, len(pop), k-1):
@@ -71,7 +71,7 @@ def mutation(bitstring, mutation_rate):
 	return bitstring
 
 
-def run_genetic_algorithm(cities,num_generations, population_size, crossover_rate, mutation_rate, select_worse_rate, n_bits, n_true, num_elites=10, stuck_max=50):
+def run_genetic_algorithm(cities,num_generations, population_size, crossover_rate, mutation_rate, n_bits, n_true, num_elites=10, stuck_max=50):
 	population = [get_random_bitstring(n_bits, n_true) for _ in range(population_size)]
 	best_solution = population[0]
 	best_score = 10000000
@@ -100,13 +100,12 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 
 		gen_solutions.append(best_gen_solution)
 		selected_parents = get_elites(population, scores, num_elites)
-		selected_parents += [selection(population, scores, generation, select_worse_rate) for _ in range(population_size-num_elites)]
+		selected_parents += [selection(population, scores, generation) for _ in range(population_size-num_elites)]
 
 		children = []
 		for i in range(0, population_size, 2):
 			parent_1, parent_2 = selected_parents[i], selected_parents[i+1]
 			for child in crossover(parent_1, parent_2, crossover_rate, n_true):
-				# child = child if is_legal_bitstring(child, n_true) else parent_1 if rand() > 0.5 else parent_2
 				child = mutation(child, mutation_rate)
 				children.append(child)
 
@@ -119,24 +118,26 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 
 
 if __name__ == "__main__":
-	cities = load_csv("./data/50_cities.csv")
+	cities = load_csv("./data/100_cities.csv")
 	num_cities = len(cities[0])
 	num_stations = 10
 
 	start = time.time()
 	best_solution, best_solutions, gen_solutions = run_genetic_algorithm(
 		cities=cities,
-		num_generations=150, 
-		population_size=300, 
-		crossover_rate=0.76, 
+		num_generations=100, 
+		population_size=150, 
+		crossover_rate=0.8, 
 		mutation_rate=0.5, 
-		select_worse_rate=0.05,
 		n_bits=num_cities, 
-		n_true=num_stations
+		n_true=num_stations,
+		num_elites=15,
+		stuck_max=50
 	)
 	runtime = time.time() - start
 	best_dist = get_cost(best_solution, cities, num_stations)
 	print_output("Genetic Algorithm", runtime, best_dist, num_cities, num_stations)
+	print(np.sum(best_solution))
 	plot_solution(best_solution, cities)
 	solutions = [get_cost(s, cities, num_stations) for s in gen_solutions]
 	plot_progress(solutions)
