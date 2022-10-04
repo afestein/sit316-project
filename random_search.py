@@ -2,6 +2,7 @@ from utils import load_csv, plot_solution, get_cost, get_random_bitstring, anima
 import time
 
 def random_search(cities, num_stations, num_iterations=500):
+    num_cities = len(cities)
     best_solution = get_random_bitstring(num_cities, num_stations)
     best_result = 100000000
     for _ in range(num_iterations):

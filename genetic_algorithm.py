@@ -106,7 +106,6 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 		for i in range(0, population_size, 2):
 			parent_1, parent_2 = selected_parents[i], selected_parents[i+1]
 			for child in crossover(parent_1, parent_2, crossover_rate, n_true):
-				# child = child if is_legal_bitstring(child, n_true) else parent_1 if rand() > 0.5 else parent_2
 				child = mutation(child, mutation_rate)
 				children.append(child)
 
@@ -119,9 +118,9 @@ def run_genetic_algorithm(cities,num_generations, population_size, crossover_rat
 
 
 if __name__ == "__main__":
-	cities = load_csv("./data/data.csv")
+	cities = load_csv("./data/100_cities.csv")
 	num_cities = len(cities[0])
-	num_stations = 6
+	num_stations = 10
 
 	start = time.time()
 	best_solution, best_solutions, gen_solutions = run_genetic_algorithm(
@@ -132,7 +131,7 @@ if __name__ == "__main__":
 		mutation_rate=0.5, 
 		n_bits=num_cities, 
 		n_true=num_stations,
-		num_elites=25,
+		num_elites=15,
 		stuck_max=50
 	)
 	runtime = time.time() - start
@@ -141,7 +140,7 @@ if __name__ == "__main__":
 	print(np.sum(best_solution))
 	plot_solution(best_solution, cities)
 	solutions = [get_cost(s, cities, num_stations) for s in gen_solutions]
-	# plot_progress(solutions)
+	plot_progress(solutions)
 	# animate_solutions(gen_solutions, cities, num_stations)
 
 

@@ -25,7 +25,7 @@ def greedy_add(cities, num_stations):
     return bit_string, best_cost
 
 if __name__ == "__main__":
-    cities = load_csv("./data/1000_cities.csv")
+    cities = load_csv("./data/500_cities.csv")
     num_stations = 100
     start = time.time()
    
