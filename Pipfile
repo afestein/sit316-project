@@ -7,6 +7,9 @@ name = "pypi"
 pulp = "*"
 numpy = "*"
 more-itertools = "*"
+matplotlib = "*"
+sklearn = "*"
+pandas = "*"
 
 [dev-packages]
 
