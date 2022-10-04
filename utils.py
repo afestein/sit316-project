@@ -89,7 +89,7 @@ def animate_solutions(best_solutions, cities, num_stations):
 
 		return output
 	
-	anim = FuncAnimation(fig, animate, frames = len(best_solutions), interval=200)
+	anim = FuncAnimation(fig, animate, frames = 200*(len(best_solutions)//100), interval=250)
 	plt.show()
 	# anim.save('genetic_algorithm.gif', writer = 'PillowWriter', fps = len(best_solutions)//2)
 
@@ -149,20 +149,22 @@ def get_cost(bitstring, cities, n_true=0):
 	_b_string = ''.join(str(x) for x in bitstring)
 	if _b_string in costs:
 		return costs[_b_string]
+	
 	cost = 0
+	# number of cities * number of cities
 	for c in cities:
-		stationed_city_distances = []
+		min_dist = 100000000000
 		for i, b in enumerate(bitstring):
-			if b:
-				stationed_city_distances.append(c[i])
-			
-		cost += np.min(stationed_city_distances)
+			if b and c[i] < min_dist:
+				min_dist = c[i]
+
+		cost += min_dist
 	costs[_b_string] = cost
 	return cost
 
 def print_output(algo_name, time, best_dist, num_cities, num_stations):
     print(f"{algo_name} results")
-    print(f"Time: {time:0.2f}s")
+    print(f"Time: {time:0.3f}s")
     print(f"Best distance: {best_dist}")
     print(f"Cities: {num_cities}")
-    print(f"Stations: {num_stations}")
+    print(f"Stations: {num_stations}\n")

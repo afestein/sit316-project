@@ -25,7 +25,7 @@ def generate_city_data(num_cities, filename, max_distance):
         csvwriter.writerows(all_rows)
 
 if __name__ == "__main__":
-    num_cities = 1000
+    num_cities = 500
     filename = f"./data/{num_cities}_cities.csv"
     max_distance = 50
     generate_city_data(num_cities, filename, max_distance)
