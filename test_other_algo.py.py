@@ -30,7 +30,6 @@ tests = [
 		'data':'500_cities.csv',
 		'num_stations':100
 	},
-
 ]
 
 algorithms = {
