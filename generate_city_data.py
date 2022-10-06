@@ -1,10 +1,15 @@
 import csv
 import numpy as np
 
+# generate a symmetric matrix of shape (num_cities, num_cities)
+# with values between 1 and max_distance
+# save this matrix into a csv file with the same format as the original problem
 def generate_city_data(num_cities, filename, max_distance):
     fields = ['Column1']
     all_rows = []
+    # generate a random matrix of the required size, with values limited by max_distance
     distances = np.random.randint(1,max_distance,size=(num_cities,num_cities))
+    # create a symmetric matrix to be used as the distance matrix
     symm_distances = (distances + distances.T)/2
 
     for i in range(num_cities):

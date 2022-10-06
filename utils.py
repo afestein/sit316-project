@@ -5,13 +5,14 @@ import numpy as np
 from sklearn.manifold import MDS
 import pandas as pd
 
+# read in a distance matrix csv and output an array of arrays
 def load_csv(filename):
 	with open(filename) as file:
 		ncols = len(file.readline().split(","))
 		data = np.loadtxt(file, delimiter=",", usecols=range(1, ncols))
 	return data
 
-
+# convert a distance matrix into an array of 2d points using multidimensional scaling
 def get2d(distance_matrix):
 	columns = [f"{i}" for i in range(len(distance_matrix[0]))]
 	df = pd.DataFrame(data=distance_matrix, columns=columns)
@@ -19,10 +20,13 @@ def get2d(distance_matrix):
 	X2d = mds.fit_transform(df)
 	return X2d
 
-
+# standard distance equation
 def get_distance(xy1, xy2):
 	return np.sqrt(((xy1[0]-xy2[0])**2) + ((xy1[1]-xy2[1])**2))
 
+# using the best solutions obtained in each solution
+# create a matplotlib animation which displays how the solution graph changed
+# as the algorithm progressed
 def animate_solutions(best_solutions, cities, num_stations):
 	cities2d = get2d(cities)
 
@@ -94,10 +98,11 @@ def animate_solutions(best_solutions, cities, num_stations):
 	plt.show()
 	# anim.save('genetic_algorithm.gif', writer = 'PillowWriter', fps = len(best_solutions)//2)
 
-
-def plot_progress(solutions, filename=None):
+# using an array of results given by an algorithm,
+# plot how the algorithm's results changed over time
+def plot_progress(results, filename=None):
 	fig, ax = plt.subplots() 
-	ax.plot(range(len(solutions)), solutions)
+	ax.plot(range(len(results)), results)
 	if filename:
 		plt.savefig(f"./images/progress_{filename}")
 	else:
@@ -105,6 +110,9 @@ def plot_progress(solutions, filename=None):
 
 	fig.clear()
 
+# plot a graph with points representing cities and stations
+# plot lines between cities representing their connection to their nearest station
+# in the given solution
 def plot_solution(best_solution, cities, filename=None):
 	cities2d = get2d(cities)
 
@@ -146,29 +154,36 @@ def plot_solution(best_solution, cities, filename=None):
 
 	fig.clear()
 	
-
-
+# returns a random bitstring of length n_bits, containing exactly n_true 1s
 def get_random_bitstring(n_bits, n_true):
 	true_indices = np.random.choice(range(n_bits), size=n_true, replace=False)
 	return [1 if i in true_indices else 0 for i in range(n_bits)]
 
-
+# determines if a given bitstring is legal for the current problem
 def is_legal_bitstring(bitstring, n_true):
 	return np.sum(bitstring) == n_true
 
+# keep track of solutions and their results to improve efficiency
+# if a solution is seen again, the calculation of the result can be skipped
 costs = {}
 def get_cost(bitstring, cities, n_true=0):
+	# heavily penalize any solutions that are not legal
 	if n_true and not is_legal_bitstring(bitstring, n_true):
 		return 1000000000
 
+	# Dynamic Programming addition
 	_b_string = ''.join(str(x) for x in bitstring)
 	if _b_string in costs:
 		return costs[_b_string]
 	
 	cost = 0
-	# number of cities * number of cities
+	# iterate over all cities
 	for c in cities:
-		min_dist = 100000000000
+		# a suitably high number
+		min_dist = 10000000000
+		# iterate over the provided solution bitstring
+		# to find the nearest station to the current city
+		# the distance from the current city to its nearest station is added to the cost value
 		for i, b in enumerate(bitstring):
 			if b and c[i] < min_dist:
 				min_dist = c[i]
@@ -186,7 +201,8 @@ def print_output(algo_name, time, best_dist, num_cities, num_stations):
 
 
 def output_to_csv(algo_name, data):
-	HEADERS = ['cities/stations','runtime','solution']
+	HEADERS = ['cities/stations','runtime','solution', 'generations','population','crossover','mutation','elites']
+	# HEADERS = ['cities/stations','runtime','solution']
 	filename = f"./tests/test-{algo_name}.csv"
 	with open(filename, 'w', newline="") as fn:
 		csvwriter = csv.writer(fn) 

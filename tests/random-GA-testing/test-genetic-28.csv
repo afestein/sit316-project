@@ -1,0 +1,5 @@
+cities/stations,runtime,solution,generations,population,crossover,mutation,elites
+5/1,0.098,66,74,64,0.477,0.210,36
+15/6,0.110,32,74,64,0.477,0.210,36
+20/8,0.113,100,74,64,0.477,0.210,36
+50/20,0.227,373,74,64,0.477,0.210,36

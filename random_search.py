@@ -1,6 +1,10 @@
 from utils import load_csv, plot_solution, get_cost, get_random_bitstring, animate_solutions,plot_progress, print_output
 import time
 
+
+# iterate for a given number of times
+# foreach iteration, generate a new random solution. 
+# determine its cost and hold onto it if it is the best solution seen so far
 def random_search(cities, num_stations, num_iterations=500):
     num_cities = len(cities)
     best_solution = get_random_bitstring(num_cities, num_stations)
