@@ -29,11 +29,16 @@ def run_pulp_solver(filename, num_stations):
 	prob += sum(sum(D[i][j] * X[i][j] for j in location) for i in location)
 
 	# constraints
+
+	# solutions must have p stations
 	prob += sum(X[i][i] for i in location) == p
 
+	# each city must be assigned to exactly one station
 	for i in location:
 		prob += sum(X[i][j] for j in location) == 1
 
+	# if a city i is assigned to a station at city j
+	# city j must contain a station
 	for i in location:
 		for j in location:
 			prob += X[i][j] <= X[j][j]
