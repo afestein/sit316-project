@@ -1,0 +1,3 @@
+python test_genetic_algo.py
+python test_myopic_algos.py
+python test_other_algo.py

@@ -3,7 +3,7 @@ import numpy as np
 from numpy.random import randint
 from numpy.random import rand
 from utils import print_output, load_csv, plot_solution, get_cost, is_legal_bitstring, get_random_bitstring, animate_solutions,plot_progress
-
+from neighbourhood_search import run_neighbourhood_search
 # allow the top num_elites of the population to survive to the next generation
 def get_elites(population, scores, num_elites):
 	sorted_scores = [index for index, num in sorted(enumerate(scores), key=lambda x: x[-1])]
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 	best_solution, best_solutions, gen_solutions = run_genetic_algorithm(
 		cities=cities,
 		num_generations=300, 
-		population_size=70, 
+		population_size=100, 
 		crossover_rate=0.8, 
 		mutation_rate=0.5, 
 		n_bits=num_cities, 
@@ -154,6 +154,13 @@ if __name__ == "__main__":
 	runtime = time.time() - start
 	best_dist = get_cost(best_solution, cities, num_stations)
 	print_output("Genetic Algorithm", runtime, best_dist, num_cities, num_stations)
+	n_sol, n_cost = run_neighbourhood_search(best_solution, cities)
+	end = time.time() - start
+	print_output("Genetic Algorithm Neighbourhood Search", end, n_cost, len(cities), num_stations)
+	
+
+
+
 	# print(np.sum(best_solution))
 	# plot_solution(best_solution, cities)
 	# solutions = [get_cost(s, cities, num_stations) for s in gen_solutions]

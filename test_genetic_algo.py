@@ -1,5 +1,6 @@
 from genetic_algorithm import run_genetic_algorithm
 from utils import load_csv, get_cost, print_output, plot_progress, plot_solution, output_to_csv
+from neighbourhood_search import run_neighbourhood_search
 import time
 import numpy as np
 import csv
@@ -18,12 +19,24 @@ tests = [
 		'num_stations':8
 	},
 	{
+		'data':'30_cities.csv',
+		'num_stations':15
+	},
+	{
 		'data':'50_cities.csv',
 		'num_stations':20
 	},
 	{
+		'data':'75_cities.csv',
+		'num_stations':15
+	},
+	{
 		'data':'100_cities.csv',
 		'num_stations':40
+	},
+	{
+		'data':'250_cities.csv',
+		'num_stations':50
 	},
 	{
 		'data':'500_cities.csv',
@@ -33,6 +46,7 @@ tests = [
 
 
 test_results = []
+search_results = []
 for test in tests:
 	results = []
 	cities = load_csv(f"./data/{test['data']}")
@@ -52,6 +66,8 @@ for test in tests:
 	)
 	runtime = time.time() - start
 
+	n_sol, n_cost = run_neighbourhood_search(best_solution, cities)
+	ns_runtime = time.time() - start
 
 	best_dist = get_cost(best_solution, cities, num_stations)
 	print(f"Total stations: {np.sum(best_solution)}")
@@ -66,5 +82,11 @@ for test in tests:
 		int(best_dist)
 	])
 
-output_to_csv("genetic", test_results)
+	search_results.append([
+		f"NS {num_cities}/{num_stations}",
+		f"{ns_runtime:0.3f}",
+		int(n_cost)
+	])
+
+output_to_csv("genetic", test_results+search_results)
 
