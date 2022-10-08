@@ -110,6 +110,46 @@ def plot_progress(results, filename=None):
 
 	fig.clear()
 
+
+def compare_solutions(solutions, names, cities):
+	cities2d = get2d(cities)
+
+	x, y = zip(*cities2d)
+	total_distance = 0
+	error = 0
+
+	fig, ax = plt.subplots(1, len(solutions)) 
+	for sol_idx, name_sol in enumerate(zip(names, solutions)):
+		name = name_sol[0]
+		solution = name_sol[1]
+		for i in range(len(cities2d)):
+			c_x, c_y = zip(cities2d[i])
+			ax[sol_idx].set_title(name)
+			if solution[i]:
+				ax[sol_idx].scatter(c_x, c_y, c="red")
+			else:
+				ax[sol_idx].scatter(c_x, c_y, c="blue")
+					
+			closest = 10000
+			station_idx = -1
+
+			for j, b in enumerate(solution):
+				distance = get_distance(cities2d[i], cities2d[j])
+				error += abs(distance - cities[i][j])
+		
+				if b:
+					if distance < closest:
+						closest = distance
+						station_idx = j
+
+				total_distance += distance	
+
+			if station_idx != i:
+				s_x, s_y = zip(cities2d[station_idx])
+				ax[sol_idx].plot([s_x, c_x],[s_y, c_y], color="gray", linewidth=0.5)
+
+
+	plt.show()
 # plot a graph with points representing cities and stations
 # plot lines between cities representing their connection to their nearest station
 # in the given solution
@@ -152,7 +192,7 @@ def plot_solution(best_solution, cities, filename=None):
 	else:
 		plt.show()
 
-	fig.clear()
+	# fig.clear()
 	
 # returns a random bitstring of length n_bits, containing exactly n_true 1s
 def get_random_bitstring(n_bits, n_true):
@@ -210,6 +250,8 @@ def output_to_csv(algo_name, data):
 		csvwriter.writerows(data)
 
 	print(f'created {filename}')
+
+
 
 
 # https://stackoverflow.com/questions/49494078/find-the-median-from-afind_weighted_median-dictionary-of-values-and-number-of-their-occurences
